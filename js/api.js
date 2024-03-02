@@ -1,9 +1,16 @@
 const dropContainer = document.getElementById("dropContainer");
 const fileInput = document.getElementById("fileInput");
 const previewContainer = document.getElementById("previewContainer");
-const submitBtn = document.getElementById("createPlayerBtn");
+const submitBtn = document.getElementById("imageGalleryBtn");
+const galleryCardParent = document.getElementById("galleryCard");
 const loader = document.getElementById("loader");
 const playerParent = document.getElementById("player-parent");
+const playerForm = document.getElementById("playerForm");
+
+// Random class name
+const defaultClassName = ["h-stretch", "v-stretch", "big-stretch", "no-style"];
+const randomIndex = Math.floor(Math.random() * defaultClassName.length);
+const randomValue = defaultClassName[randomIndex];
 
 let uploadedImage = null;
 
@@ -37,35 +44,29 @@ submitBtn.addEventListener("click", async (e) => {
     // Get form data
     const name = document.getElementById("nameInput").value;
     const email = document.getElementById("emailInput").value;
-    const goals = document.getElementById("goalsInput").value;
-    const assist = document.getElementById("assistInput").value;
-    const type = document.getElementById("typeInput").value;
-    const active = document.getElementById("activeInput").value;
-    const password = document.getElementById("passwordInput").value;
+    const title = document.getElementById("titleInput").value;
+    const age = document.getElementById("ageInput").value;
+    const danceStyle = document.getElementById("danceStyleInput").value;
+    const experienceLevel = document.getElementById(
+      "experienceLevelInput"
+    ).value;
+    const address = document.getElementById("addressInput").value;
+    const description = document.getElementById("descriptionInput").value;
     const uploadedImage = document.getElementById("fileInput").files[0];
 
     const file = await uploadImageToImgBB(uploadedImage);
 
-    // const playerData = {
-    //   name,
-    //   email,
-    //   goals,
-    //   assist,
-    //   active: active === "true" ? true : false,
-    //   password,
-    //   type,
-    //   file,
-    // };
-
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
-    formData.append("goals", goals);
-    formData.append("assist", assist);
-    formData.append("type", type);
-    formData.append("active", active === "true" ? true : false);
-    formData.append("password", password);
+    formData.append("title", title);
+    formData.append("age", age);
+    formData.append("danceStyle", danceStyle);
+    formData.append("experienceLevel", experienceLevel);
+    formData.append("address", address);
+    formData.append("description", description);
     formData.append("file", file);
+    formData.append("className", randomValue);
 
     // console.log("upload_images___:", upload_images);
     console.log("Form Data:", formData);
@@ -86,6 +87,7 @@ submitBtn.addEventListener("click", async (e) => {
       .then((data) => {
         console.log("Success:", data);
         window.location.reload();
+        playerForm.reset();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -111,17 +113,18 @@ function handleFile(file) {
       previewContainer.innerHTML = "";
       previewContainer.appendChild(img);
       uploadedImage = file;
+      previewContainer.style.display = "block";
     };
   }
 }
 
-document.getElementById("fileInput").addEventListener("change", (event) => {
-  const files = event.target.files;
-  handleFile(files[0]);
-});
+// document.getElementById("fileInput").addEventListener("change", (event) => {
+//   const files = event.target.files;
+//   handleFile(files[0]);
+// });
 
 // get player
-fetch("https://express-sql-ts-backend.onrender.com/api/v1/player/")
+fetch("https://express-sql-ts-backend.onrender.com/api/v1/player")
   .then((response) => {
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -130,6 +133,7 @@ fetch("https://express-sql-ts-backend.onrender.com/api/v1/player/")
   })
   .then((data) => {
     playerInfo(data);
+    console.log(data);
   })
   .catch((error) => {
     console.error("Error:", error);
@@ -138,42 +142,38 @@ fetch("https://express-sql-ts-backend.onrender.com/api/v1/player/")
 const playerInfo = (player) => {
   const playerInfo = player.data;
 
-  playerInfo.forEach((player) => {
+  playerInfo.forEach((dancer) => {
     // Use forEach to iterate over each player
-    const playerCard = document.createElement("div");
-    playerCard.className = "col-12 col-md-6 col-lg-4 mb-4";
+    const galleryCard = document.createElement("div");
+    galleryCard.className = `${
+      dancer.className ? dancer.className : "no-style"
+    } gallery-effect`;
 
-    playerCard.innerHTML = `
-      <div class="card border-0">
-        <div class="card-body p-0">
-          <div class="player-single-items">
-            <div class="player-thumbnail w-full">
-              <img src="${player.file}" alt="${player.name}" />
-            </div>
-            <div class="player-info p-7 text-center">
-              <h3 class="lead">${player.name}</h3>
-              <div class="player-goals">
-                <span class="">${player.goals} Goals</span>
-                <span class=""> . </span>
-                <span class="">${player.assist} Assist</span>
-              </div>
-              <button
-                class="bg-blue-700 text-white rounded py-2 text-center block w-full mt-4 selected-btn"
-                id="selected-btn"
-              >
-                Select
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    galleryCard.innerHTML = `
+          <img src="${dancer.file}" alt="" />
+          <article class="content">
+          <small style="letter-spacing: 3px; font-size: 14px;">${
+            dancer.experienceLevel
+          }</small>
+
+            <h3>${dancer.title}</h3>
+            <p>
+            ${
+              dancer.description.length > 100
+                ? dancer.description.substring(0, 100) + "..." // Concatenate the ellipsis
+                : dancer.description
+            }
+          </p>
+          
+          
+          </article>
     `;
 
-    playerParent.appendChild(playerCard);
+    galleryCardParent.appendChild(galleryCard);
   });
 };
 
-// JQuery and JQuery plugins. On the main page, after the load add jquery ajax call to this rest
+// // JQuery and JQuery plugins. On the main page, after the load add jquery ajax call to this rest
 
 $(document).ready(function () {
   $.ajax({
